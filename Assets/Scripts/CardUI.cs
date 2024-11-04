@@ -2,11 +2,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class CardScript : MonoBehaviour
+public class CardUI : MonoBehaviour
 {
     public int cardID;               // Unique ID for matching pairs
     public bool isFaceUp = false;    // Track if the card is face up
-    public event Action<CardScript> OnCardSelected;  // Event to notify selection
+    public event Action<CardUI> OnCardSelected;  // Event to notify selection
 
     private Image cardImage;
     private Button button;

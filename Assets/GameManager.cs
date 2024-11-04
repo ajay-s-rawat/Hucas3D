@@ -42,6 +42,7 @@ public class GameManager : Singleton<GameManager>
     public void RestartGame()
     {
         gameOverPanel.SetActive(false);  // Hide Game Over panel
+        cardManager.ResetCards();
         StartGame();
     }
 }

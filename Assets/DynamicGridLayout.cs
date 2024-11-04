@@ -11,11 +11,6 @@ public class DynamicGridLayout : MonoBehaviour
     [SerializeField] private GridLayoutGroup gridLayoutGroup;
     [SerializeField] private RectTransform rectTransform;
 
-    void Start()
-    {
-       
-    }
-
     public void UpdateGridLayout()
     {
         // Get container dimensions
