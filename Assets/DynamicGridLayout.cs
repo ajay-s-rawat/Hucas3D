@@ -8,18 +8,15 @@ public class DynamicGridLayout : MonoBehaviour
     public int columns = 2;             // Number of columns
     public float spacing = 10f;         // Space between cells
 
-    private GridLayoutGroup gridLayoutGroup;
-    private RectTransform rectTransform;
+    [SerializeField] private GridLayoutGroup gridLayoutGroup;
+    [SerializeField] private RectTransform rectTransform;
 
     void Start()
     {
-        gridLayoutGroup = GetComponent<GridLayoutGroup>();
-        rectTransform = GetComponent<RectTransform>();
-
-        UpdateGridLayout();
+       
     }
 
-    void UpdateGridLayout()
+    public void UpdateGridLayout()
     {
         // Get container dimensions
         float containerWidth = rectTransform.rect.width;
