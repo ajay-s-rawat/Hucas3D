@@ -215,30 +215,37 @@ public class CardManager : MonoBehaviour
 
     private IEnumerator CheckForMatch()
     {
-        yield return new WaitForSeconds(0.5f); // Wait briefly before checking for a match
+        yield return new WaitForSeconds(0.5f);
+
+        ScoreManager.Instance.IncrementMoves(); // Increment total moves on each turn
 
         if (firstSelectedCard.cardID == secondSelectedCard.cardID)
         {
-            // Cards match
             matchesFound++;
-            Debug.Log("Match Found!");
+            ScoreManager.Instance.RewardPointsForMatch(); // Reward points for match found
+            ScoreManager.Instance.IncreaseCombo(); // Increase combo if matched
 
             if (matchesFound == totalPairs)
             {
                 Debug.Log("Game Over: All Matches Found!");
-                // Here you might want to trigger a game over UI or similar
+                // Handle game over logic (e.g., display final score)
+                GameManager.Instance.EndGame();
             }
+
+            firstSelectedCard = null;
+            secondSelectedCard = null;
         }
         else
         {
-            // Cards do not match, flip them back over
+            // Reset combo streak if the match fails
+            ScoreManager.Instance.ResetCombo(); // Reset the streak on failed match
             firstSelectedCard.ShowCardBack();
             secondSelectedCard.ShowCardBack();
-        }
 
-        // Reset selected cards
-        firstSelectedCard = null;
-        secondSelectedCard = null;
+            firstSelectedCard = null;
+            secondSelectedCard = null;
+        }
     }
+
 
 }
