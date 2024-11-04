@@ -133,9 +133,12 @@ public class CardManager : MonoBehaviour
         // Set the grid constraint count to match the number of rows
         gridLayoutGroup.constraintCount = dynamicGridLayout.rows;
 
-        // Generate shuffled card faces
-        List<Sprite> shuffledFaces = CreateShuffledCardFaces();
+        // Create shuffled card faces and their corresponding IDs
+        (List<Sprite> shuffledFaces, List<int> idList) = CreateShuffledCardFaces();
         int totalCards = dynamicGridLayout.rows * dynamicGridLayout.columns;
+
+        // Clear any existing cards in the list
+        cards.Clear();
 
         for (int i = 0; i < totalCards; i++)
         {
@@ -149,8 +152,7 @@ public class CardManager : MonoBehaviour
             }
 
             // Set up card properties and data
-            int faceIndex = i / 2; // Unique ID for each pair
-            cardScript.SetCardData(shuffledFaces[i], cardBack, faceIndex);
+            cardScript.SetCardData(shuffledFaces[i], cardBack, idList[i]); // Use shuffled faces and corresponding IDs
             cardScript.OnCardSelected += OnCardClicked;  // Subscribe to the card's click event
 
             cards.Add(cardScript);  // Add the card to the list for future reference
@@ -158,29 +160,37 @@ public class CardManager : MonoBehaviour
     }
 
 
-
-    private List<Sprite> CreateShuffledCardFaces()
+    private (List<Sprite> shuffledFaces, List<int> idList) CreateShuffledCardFaces()
     {
         List<Sprite> faceList = new List<Sprite>();
+        List<int> idList = new List<int>();
         totalPairs = (dynamicGridLayout.rows * dynamicGridLayout.columns) / 2;
 
-        // Add pairs of card faces to the list
+        // Populate faceList with pairs and idList with IDs
         for (int i = 0; i < totalPairs; i++)
         {
-            faceList.Add(cardFaces[i]);
-            faceList.Add(cardFaces[i]);  // Add each face twice for matching pairs
+            faceList.Add(cardFaces[i]); // Add each face once
+            faceList.Add(cardFaces[i]); // Add each face again for a pair
+            idList.Add(i); // Add ID for the first card
+            idList.Add(i); // Add ID for the second card
         }
 
         // Shuffle the list
         for (int i = 0; i < faceList.Count; i++)
         {
-            Sprite temp = faceList[i];
+            // Swap the current element with a random element
             int randomIndex = Random.Range(i, faceList.Count);
+            // Swap sprites
+            Sprite tempFace = faceList[i];
             faceList[i] = faceList[randomIndex];
-            faceList[randomIndex] = temp;
+            faceList[randomIndex] = tempFace;
+            // Swap IDs accordingly
+            int tempId = idList[i];
+            idList[i] = idList[randomIndex];
+            idList[randomIndex] = tempId;
         }
 
-        return faceList;
+        return (faceList, idList);
     }
 
 
@@ -199,7 +209,7 @@ public class CardManager : MonoBehaviour
         {
             secondSelectedCard = clickedCard;
             StartCoroutine(CheckForMatch());
-        }
+        } 
     }
 
 
