@@ -178,6 +178,7 @@ GameObject:
   m_Component:
   - component: {fileID: 518014791}
   - component: {fileID: 518014792}
+  - component: {fileID: 518014793}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -216,6 +217,19 @@ MonoBehaviour:
   cardManager: {fileID: 2011895946}
   gameOverUI: {fileID: 1901506626}
   gameplayUI: {fileID: 741942057}
+--- !u!114 &518014793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518014790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2299c384973a464fb9bd5be0e345e18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardManager: {fileID: 2011895946}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -548,6 +562,14 @@ PrefabInstance:
       propertyPath: finalScoreText
       value: 
       objectReference: {fileID: 1912548019}
+    - target: {fileID: 2011895945, guid: 6c3104b3cce5f334d95da87f8915bd0b, type: 3}
+      propertyPath: rows
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2011895945, guid: 6c3104b3cce5f334d95da87f8915bd0b, type: 3}
+      propertyPath: columns
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 27686226027235901, guid: 6c3104b3cce5f334d95da87f8915bd0b, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 70

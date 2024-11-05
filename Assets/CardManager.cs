@@ -5,26 +5,26 @@ using System.Collections.Generic;
 
 public class CardManager : MonoBehaviour
 {
-    public Sprite[] cardFaces;
-    public Sprite cardBack;
+    [SerializeField] private Sprite[] cardFaces;
+    [SerializeField] private Sprite cardBack;
     [SerializeField] private GridLayoutGroup gridLayoutGroup;
     [SerializeField] private DynamicGridLayout dynamicGridLayout;
-    public GameObject cardPrefab;
+    [SerializeField] private GameObject cardPrefab;
 
-    private List<CardUI> cards = new List<CardUI>();
-    private CardUI firstSelectedCard;
-    private CardUI secondSelectedCard;
+    public List<CardUI> cards = new List<CardUI>();
+    public List<CardUI> flippedCards = new List<CardUI>();
+  
     private int totalPairs;
     private int matchesFound = 0;
 
-    void Start()
-    {
-        SetupGridAndCards();
-    }
+    public List<CardUI> Cards => cards;
+    public int TotalPairs => totalPairs;
+    public int MatchesFound => matchesFound;
 
-    private void SetupGridAndCards()
+   
+    public void SetupGridAndCards()
     {
-        ClearCardLayout();  // Clear existing cards before setting up new ones
+        ClearCardLayout();
 
         if (dynamicGridLayout != null)
         {
@@ -77,6 +77,54 @@ public class CardManager : MonoBehaviour
         Debug.Log(message);
     }
 
+    public void RestoreSavedCards(int totalPairs, int matchesFound, CardData[] savedCards)
+    {
+        ClearCardLayout();
+
+        //Set Data using Game Data
+        this.totalPairs = totalPairs;
+        this.matchesFound = matchesFound;
+
+
+        Debug.Log("totalPairs : " + totalPairs);
+        Debug.Log("SavedCards : " + savedCards.Length);
+        for(int i = 0; i < savedCards.Length ; i++)
+        {
+            GameObject cardObject = Instantiate(cardPrefab, gridLayoutGroup.transform);
+            if (cardObject.TryGetComponent<CardUI>(out var cardScript))
+            {
+                // Use SetCardData to set the saved card's face, back, and ID
+                cardScript.SetCardData(cardFaces[savedCards[i].CardID], cardBack, savedCards[i].CardID, savedCards[i].IsFaceUp);
+                cardScript.OnCardSelected += OnCardClicked;
+                
+                cards.Add(cardScript);
+                Debug.Log("Check if card Faceup or down!" + savedCards[i].IsFaceUp);
+                // Update the UI based on whether the card is face-up or not
+                if (savedCards[i].IsFaceUp)
+                {
+                    Debug.Log("ShowCardFace!");
+                    cards[i].ShowCardFace(); // Show card face if it's face-up
+                }
+                else
+                {
+                    Debug.Log("ShowCardBack!");
+                    cards[i].ShowCardBack(); // Show card back if it's face-down
+                }
+            }
+            else
+            {
+                Debug.LogError("Card prefab is missing the CardUI component!");
+            }
+        }
+        // Ensure grid layout is updated based on the saved layout settings
+        if (dynamicGridLayout != null)
+        {
+            dynamicGridLayout.UpdateGridLayout();
+        }
+
+        gridLayoutGroup.constraintCount = dynamicGridLayout.rows;
+    }
+
     public void GenerateCardLayout()
     {
         if (gridLayoutGroup == null || cardPrefab == null)
@@ -95,19 +143,20 @@ public class CardManager : MonoBehaviour
         for (int i = 0; i < totalCards; i++)
         {
             GameObject cardObject = Instantiate(cardPrefab, gridLayoutGroup.transform);
-            CardUI cardScript = cardObject.GetComponent<CardUI>();
-
-            if (cardScript == null)
+            
+            if (!cardObject.TryGetComponent<CardUI>(out var cardScript))
             {
                 Debug.LogError("Card prefab does not have a Card component attached!");
                 continue;
             }
 
-            cardScript.SetCardData(shuffledFaces[i], cardBack, idList[i]);
+            cardScript.SetCardData(shuffledFaces[i], cardBack, idList[i], false);
+            cardScript.ShowCardBack();
             cardScript.OnCardSelected += OnCardClicked;
             cards.Add(cardScript);
         }
     }
+
 
     public void ClearCardLayout()
     {
@@ -136,13 +185,8 @@ public class CardManager : MonoBehaviour
         for (int i = 0; i < faceList.Count; i++)
         {
             int randomIndex = Random.Range(i, faceList.Count);
-            Sprite tempFace = faceList[i];
-            faceList[i] = faceList[randomIndex];
-            faceList[randomIndex] = tempFace;
-
-            int tempId = idList[i];
-            idList[i] = idList[randomIndex];
-            idList[randomIndex] = tempId;
+            (faceList[randomIndex], faceList[i]) = (faceList[i], faceList[randomIndex]);
+            (idList[randomIndex], idList[i]) = (idList[i], idList[randomIndex]);
         }
 
         return (faceList, idList);
@@ -150,67 +194,57 @@ public class CardManager : MonoBehaviour
 
     private void OnCardClicked(CardUI clickedCard)
     {
-        if (clickedCard.isFaceUp || secondSelectedCard != null || clickedCard == firstSelectedCard)
+        if (clickedCard.isFaceUp || flippedCards.Count >= 2 || flippedCards.Contains(clickedCard))
             return;
 
         clickedCard.ShowCardFace();
+        flippedCards.Add(clickedCard);
 
-        if (firstSelectedCard == null)
+        if (flippedCards.Count == 2)
         {
-            firstSelectedCard = clickedCard;
-        }
-        else
-        {
-            secondSelectedCard = clickedCard;
-            StartCoroutine(CheckForMatch());
+            StartCoroutine(CheckForMatchCoroutine(flippedCards[0], flippedCards[1]));
+            flippedCards.Clear();
         }
     }
 
-    private IEnumerator CheckForMatch()
+    private IEnumerator CheckForMatchCoroutine(CardUI firstCard, CardUI secondCard)
     {
         yield return new WaitForSeconds(0.5f);
 
         ScoreManager.Instance.IncrementMoves();
 
-        if (firstSelectedCard.cardID == secondSelectedCard.cardID)
+        if (firstCard.cardID == secondCard.cardID)
         {
             matchesFound++;
             ScoreManager.Instance.RewardPointsForMatch();
             ScoreManager.Instance.IncreaseCombo();
+            firstCard.isMatched = secondCard.isMatched = true;
 
             if (matchesFound == totalPairs)
             {
                 Debug.Log("Game Over: All Matches Found!");
                 GameManager.Instance.EndGame();
             }
-
-            firstSelectedCard = null;
-            secondSelectedCard = null;
         }
         else
         {
             ScoreManager.Instance.ResetCombo();
-            firstSelectedCard.ShowCardBack();
-            secondSelectedCard.ShowCardBack();
-
-            firstSelectedCard = null;
-            secondSelectedCard = null;
+            yield return new WaitForSeconds(0.2f);
+            firstCard.ShowCardBack();
+            secondCard.ShowCardBack();
         }
     }
 
     public void ResetCards()
     {
-        // Reset match tracking and clear card objects
+        StopAllCoroutines();  // Stop any ongoing coroutines to prevent reference errors
+                              // Reset match tracking and clear card objects
         matchesFound = 0;
-        firstSelectedCard = null;
-        secondSelectedCard = null;
-
+        flippedCards.Clear();
         // Destroy existing card GameObjects
         ClearCardLayout();
-       
+
         // Reinitialize the card layout
         SetupGridAndCards();
     }
-
-
 }

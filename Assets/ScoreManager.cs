@@ -94,4 +94,11 @@ public class ScoreManager : Singleton<ScoreManager>
         comboStreak = 0; // Reset combo streak
         Debug.Log("Combo streak has been reset.");
     }
+
+    public void SetData(int score, int moves, int combo)
+    {
+        Score = score;
+        totalMoves = moves;
+        comboStreak = combo;        
+    }
 }
