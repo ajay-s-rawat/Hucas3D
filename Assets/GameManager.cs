@@ -45,6 +45,8 @@ public class GameManager : Singleton<GameManager>
 
     public void EndGame()
     {
+        AudioController.Instance.PlayGameOverSound();
+        PersistentDataManager.Instance.ClearSavedGame();
         gameOverUI.gameObject.SetActive(true); // Hide gameplay UI
         gameOverUI.ShowGameOverUI(ScoreManager.Instance.GetScore()); // Show Game Over UI
     }
@@ -58,6 +60,8 @@ public class GameManager : Singleton<GameManager>
 
     private void OnApplicationQuit()
     {
+        if (cardManager.MatchesFound == cardManager.TotalPairs) return;
+
         CardData[] cardDataList = new CardData[cardManager.TotalPairs * 2];
         Debug.Log(" TotalPairs : " + cardManager.TotalPairs);
         for(int i = 0; i < cardManager.TotalPairs * 2; i++)

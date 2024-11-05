@@ -197,6 +197,8 @@ public class CardManager : MonoBehaviour
         if (clickedCard.isFaceUp || flippedCards.Count >= 2 || flippedCards.Contains(clickedCard))
             return;
 
+        AudioController.Instance.PlayClickSound();
+
         clickedCard.ShowCardFace();
         flippedCards.Add(clickedCard);
 
@@ -220,14 +222,17 @@ public class CardManager : MonoBehaviour
             ScoreManager.Instance.IncreaseCombo();
             firstCard.isMatched = secondCard.isMatched = true;
 
+            Debug.Log("matchesFound : " + matchesFound + "      totalPairs : " + totalPairs);
             if (matchesFound == totalPairs)
             {
                 Debug.Log("Game Over: All Matches Found!");
-                GameManager.Instance.EndGame();
+                GameManager.Instance.EndGame();                
             }
+            AudioController.Instance.PlayCardMatchSound();
         }
         else
         {
+            AudioController.Instance.PlayCardMisMatchSound();
             ScoreManager.Instance.ResetCombo();
             yield return new WaitForSeconds(0.2f);
             firstCard.ShowCardBack();
